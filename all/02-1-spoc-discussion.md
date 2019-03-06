@@ -71,9 +71,22 @@ UEFI启动对比BIOS启动的优势有三点：
 - 基于实验八的代码分析ucore的系统调用实现，说明指定系统调用的参数和返回值的传递方式和存放位置信息，以及内核中的系统调用功能实现函数。
 
 在 ucore 中，执行系统调用前，需要将系统调用的参数出存在寄存器中。eax 表示系统调用类型，其余参数依次存在 edx, ecx, ebx, edi, esi 中。
+    ...
+    int num = tf->tf_regs.reg_eax;
+    ... 
+    arg[0] = tf->tf_regs.reg_edx; 
+    arg[1] = tf->tf_regs.reg_ecx;
+    arg[2] = tf->tf_regs.reg_ebx;
+    arg[3] = tf->tf_regs.reg_edi;
+    arg[4] = tf->tf_regs.reg_esi;
+    ...
 以getpid为例，分析ucore的系统调用中返回结果的传递代码。
 syscalls 是保存了各种系统调用的函数指针，进入 sys_getpid，直接返回当前进程的 pid。
+    sys_getpid(uint32_t arg[]) {
+        return current->pid;
+    }
 而各类系统调用返回结果统一存在eax中。
+    tf->tf_regs.reg_eax = syscalls[num](arg);
 
 - 以ucore/rcore lab8的answer为例，分析ucore 应用的系统调用编写和含义。
 
